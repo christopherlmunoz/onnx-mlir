@@ -22,10 +22,9 @@ func.func @test_dequantizelinear_ui8(%arg0: tensor<4xui8>, %arg1: tensor<f32>, %
 // CHECK-DAG:         [[LOAD_PARAM_0_MEM_:%.+]] = krnl.load [[PARAM_0_]]{{.}}[[VAR_1_]]{{.}} : memref<4xui8>
 // CHECK-DAG:         [[LOAD_PARAM_1_MEM_:%.+]] = krnl.load [[PARAM_1_]][] : memref<f32>
 // CHECK:             [[VAR_4_:%.+]] = builtin.unrealized_conversion_cast [[LOAD_PARAM_0_MEM_]] : ui8 to i8
-// CHECK:             [[VAR_5_:%.+]] = arith.extui [[VAR_4_]] : i8 to i32
-// CHECK:             [[VAR_6_:%.+]] = arith.uitofp [[VAR_5_]] : i32 to f32
-// CHECK:             [[VAR_7_:%.+]] = arith.mulf [[VAR_6_]], [[LOAD_PARAM_1_MEM_]] : f32
-// CHECK:             krnl.store [[VAR_7_]], [[RES_]]{{.}}[[VAR_1_]]{{.}} : memref<4xf32>
+// CHECK:             [[VAR_5_:%.+]] = arith.uitofp [[VAR_4_]] : i8 to f32
+// CHECK:             [[VAR_6_:%.+]] = arith.mulf [[VAR_5_]], [[LOAD_PARAM_1_MEM_]] : f32
+// CHECK:             krnl.store [[VAR_6_]], [[RES_]]{{.}}[[VAR_1_]]{{.}} : memref<4xf32>
 // CHECK:           }
 // CHECK:           return [[RES_]] : memref<4xf32>
 // CHECK:         }
@@ -47,10 +46,10 @@ func.func @test_dynamic_quantize_linear(%arg0: tensor<?x2xf32>) -> (tensor<?x2xu
 // CHECK-DAG:       [[CST_5_dot_000000_:%.+]] = arith.constant 5.000000e-01 : f32
 // CHECK-DAG:       [[CST_2_dot_000000_:%.+]] = arith.constant 2.000000e+00 : f32
 // CHECK-DAG:       [[CST_1_dot_000000_:%.+]] = arith.constant 1.000000e+00 : f32
-// CHECK-DAG:       [[CST_0_1_:%.+]] = arith.constant 0xFF800000 : f32
-// CHECK-DAG:       [[CST_0_2_:%.+]] = arith.constant 0x7F800000 : f32
 // CHECK-DAG:       [[CST_0_dot_000000_:%.+]] = arith.constant 0.000000e+00 : f32
 // CHECK-DAG:       [[CST_2_dot_550000_:%.+]] = arith.constant 2.550000e+02 : f32
+// CHECK-DAG:       [[CST_0_1_:%.+]] = arith.constant 0xFF800000 : f32
+// CHECK-DAG:       [[CST_0_2_:%.+]] = arith.constant 0x7F800000 : f32
 // CHECK-DAG:       [[CST_0_3_:%.+]] = arith.constant 0 : index
 // CHECK:           [[VAR_dim_:%.+]] = memref.dim [[PARAM_0_]], [[CST_0_3_]] : memref<?x2xf32>
 // CHECK-DAG:       [[RES_:%.+]] = memref.alloc([[VAR_dim_]]) {{.*}}: memref<?x2xui8>
@@ -95,7 +94,7 @@ func.func @test_dynamic_quantize_linear(%arg0: tensor<?x2xf32>) -> (tensor<?x2xu
 // CHECK-DAG:       [[VAR_10_:%.+]] = affine.apply [[MAP_0_]](){{.}}[[VAR_dim_]]{{.}}
 // CHECK-DAG:       [[RES_6_:%.+]] = memref.alloc() {{.*}}: memref<1xindex>
 // CHECK:           affine.store [[VAR_10_]], [[RES_6_]][0] : memref<1xindex>
-// CHECK-DAG:       [[VAR_reshape_14_:%.+]] = memref.reshape [[RES_]]([[RES_]]_13) : (memref<?x2xui8>, memref<1xindex>) -> memref<?xui8>
+// CHECK-DAG:       [[VAR_reshape_14_:%.+]] = memref.reshape [[RES_]]([[RES_6_]]) : (memref<?x2xui8>, memref<1xindex>) -> memref<?xui8>
 // CHECK-DAG:       [[LOOP_2_:%.+]] = krnl.define_loops 1
 // CHECK:           krnl.iterate([[LOOP_2_]]) with ([[LOOP_2_]] -> [[I_4_:%.+]] = 0 to [[MAP_1_]]([[VAR_dim_]])){
 // CHECK:             [[VAR_12_2_:%.+]] = krnl.get_induction_var_value([[LOOP_2_]]) : (!krnl.loop) -> index
@@ -124,7 +123,7 @@ func.func @test_dynamic_quantize_linear(%arg0: tensor<?x2xf32>) -> (tensor<?x2xu
 // CHECK:             [[VAR_33_:%.+]] = builtin.unrealized_conversion_cast [[VAR_32_]] : i8 to ui8
 // CHECK:             krnl.store [[VAR_33_]], [[VAR_reshape_14_]]{{.}}[[VAR_12_2_]]{{.}} : memref<?xui8>
 // CHECK:           }
-// CHECK:           return [[RES_]], [[RES_]]_6, [[RES_]]_7 : memref<?x2xui8>, memref<f32>, memref<ui8>
+// CHECK:           return [[RES_]], [[RES_1_]], [[RES_2_]] : memref<?x2xui8>, memref<f32>, memref<ui8>
 // CHECK:         }
 }
 

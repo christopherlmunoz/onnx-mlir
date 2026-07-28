@@ -117,8 +117,9 @@ func.func @test_gather_nd_2(%arg0 : tensor<2x2x2xf32>, %arg1 : tensor<2x1x2xi64>
 
 func.func @test_gather_nd_4d_2d(%arg0: tensor<1x196x512xf32>, %arg1: tensor<1x1xi64>) -> (tensor<*xf32>) {
   %0 = "onnx.GatherND"(%arg0, %arg1) <{batch_dims = 0 : si64}> : (tensor<1x196x512xf32>, tensor<1x1xi64>) -> tensor<*xf32>
-  onnx.Return %0 : tensor<*xf32>
+  func.return %0 : tensor<*xf32>
 
+// mlir2FileCheck.py
 // CHECK-LABEL:  func.func @test_gather_nd_4d_2d
 // CHECK-SAME:   ([[PARAM_0_:%.+]]: memref<1x196x512xf32>, [[PARAM_1_:%.+]]: memref<1x1xi64>) -> memref<1x196x512xf32> {
 // CHECK-DAG:       [[CST_1_:%.+]] = arith.constant 1 : index
@@ -147,27 +148,26 @@ func.func @test_gather_nd_4d_2d(%arg0: tensor<1x196x512xf32>, %arg1: tensor<1x1x
 // CHECK-DAG:       [[LOOP_0_:%.+]]:2 = krnl.define_loops 2
 // CHECK-DAG:       [[CST_0_1_:%.+]] = arith.constant 0 : index
 // CHECK:           krnl.iterate([[LOOP_0_]]#0, [[LOOP_0_]]#1) with ([[LOOP_0_]]#0 -> [[I_0_:%.+]] = 0 to 1, [[LOOP_0_]]#1 -> [[I_1_:%.+]] = 0 to 1){
-// CHECK-DAG:         [[VAR_2_:%.+]]:2 = krnl.get_induction_var_value([[LOOP_0_]]#0, [[LOOP_0_]]#1) : (!krnl.loop, !krnl.loop) -> (index, index)
+// CHECK-DAG:         [[VAR_1_:%.+]]:2 = krnl.get_induction_var_value([[LOOP_0_]]#0, [[LOOP_0_]]#1) : (!krnl.loop, !krnl.loop) -> (index, index)
 // CHECK-DAG:         [[CST_0_2_:%.+]] = arith.constant 0 : index
-// CHECK:             [[LOAD_VAR_reinterpret_cast_MEM_:%.+]] = krnl.load [[VAR_reinterpret_cast_]]{{.}}[[VAR_2_]]#0, [[VAR_2_]]#1, [[CST_0_2_]]{{.}} : memref<1x1x1xi64>
-// CHECK-DAG:         [[VAR_4_:%.+]] = arith.index_cast [[LOAD_VAR_reinterpret_cast_MEM_]] : i64 to index
+// CHECK:             [[LOAD_VAR_reinterpret_cast_MEM_:%.+]] = krnl.load [[VAR_reinterpret_cast_]]{{.}}[[VAR_1_]]#0, [[VAR_1_]]#1, [[CST_0_2_]]{{.}} : memref<1x1x1xi64>
+// CHECK-DAG:         [[VAR_3_:%.+]] = arith.index_cast [[LOAD_VAR_reinterpret_cast_MEM_]] : i64 to index
 // CHECK-DAG:         [[CST_0_3_:%.+]] = arith.constant 0 : index
 // CHECK-DAG:         [[CST_0_4_:%.+]] = arith.constant 0 : index
 // CHECK-DAG:         [[LOOP_1_:%.+]]:2 = krnl.define_loops 2
 // CHECK:             krnl.iterate([[LOOP_1_]]#0, [[LOOP_1_]]#1) with ([[LOOP_1_]]#0 -> [[I_2_:%.+]] = [[CST_0_3_]] to [[CST_196_1_]], [[LOOP_1_]]#1 -> [[I_3_:%.+]] = [[CST_0_4_]] to [[CST_512_1_]]){
-// CHECK:               [[VAR_6_:%.+]]:2 = krnl.get_induction_var_value([[LOOP_1_]]#0, [[LOOP_1_]]#1) : (!krnl.loop, !krnl.loop) -> (index, index)
-// CHECK-DAG:           [[LOAD_VAR_reinterpret_cast_11_MEM_:%.+]] = krnl.load [[VAR_reinterpret_cast_11_]]{{.}}[[VAR_2_]]#0, [[VAR_4_]], [[VAR_6_]]#0, [[VAR_6_]]#1] : memref<1x1x196x512xf32>
+// CHECK:               [[VAR_5_:%.+]]:2 = krnl.get_induction_var_value([[LOOP_1_]]#0, [[LOOP_1_]]#1) : (!krnl.loop, !krnl.loop) -> (index, index)
+// CHECK-DAG:           [[LOAD_VAR_reinterpret_cast_11_MEM_:%.+]] = krnl.load [[VAR_reinterpret_cast_11_]]{{.}}[[VAR_1_]]#0, [[VAR_3_]], [[VAR_5_]]#0, [[VAR_5_]]#1] : memref<1x1x196x512xf32>
 // CHECK-DAG:           [[LOAD_RES_1_MEM_:%.+]] = krnl.load [[RES_1_]][] : memref<index>
 // CHECK:               krnl.store [[LOAD_VAR_reinterpret_cast_11_MEM_]], [[RES_]]{{.}}[[LOAD_RES_1_MEM_]]{{.}} : memref<100352xf32>
-// CHECK:               [[VAR_9_:%.+]] = arith.addi [[LOAD_RES_1_MEM_]], [[CST_1_10_]] : index
-// CHECK:               krnl.store [[VAR_9_]], [[RES_1_]][] : memref<index>
+// CHECK:               [[VAR_8_:%.+]] = arith.addi [[LOAD_RES_1_MEM_]], [[CST_1_10_]] : index
+// CHECK:               krnl.store [[VAR_8_]], [[RES_1_]][] : memref<index>
 // CHECK:             }
 // CHECK:           }
 // CHECK-DAG:       [[CST_1_11_:%.+]] = arith.constant 1 : index
 // CHECK-DAG:       [[CST_100352_2_:%.+]] = arith.constant 100352 : index
 // CHECK-DAG:       [[VAR_reinterpret_cast_17_:%.+]] = memref.reinterpret_cast [[RES_]] to offset: [0], sizes: [1, 196, 512], strides: [100352, 512, 1] : memref<100352xf32> to memref<1x196x512xf32>
-// CHECK:           [[VAR_1_:%.+]] = builtin.unrealized_conversion_cast [[VAR_reinterpret_cast_17_]] : memref<1x196x512xf32> to tensor<1x196x512xf32>
-// CHECK:           onnx.Return [[VAR_1_]] : tensor<1x196x512xf32>
+// CHECK:           return [[VAR_reinterpret_cast_17_]] : memref<1x196x512xf32>
 // CHECK:         }
 }
 
