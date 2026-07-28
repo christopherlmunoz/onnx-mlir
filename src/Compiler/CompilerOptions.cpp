@@ -1534,12 +1534,19 @@ void removeUnrelatedOptions(
   optCategories.push_back(&llvm::cl::getGeneralCategory());
   llvm::cl::HideUnrelatedOptions(optCategories);
 
+  // Option::removeArgument() erases the option from the registered-options
+  // map, and DenseMap::erase invalidates iterators (backward-shift deletion),
+  // so removal must not happen while iterating that map: collect first,
+  // remove after.
   auto &optMap = llvm::cl::getRegisteredOptions();
-  for (auto n = optMap.begin(); n != optMap.end(); n++) {
-    llvm::cl::Option *opt = n->second;
+  std::vector<llvm::cl::Option *> optsToRemove;
+  for (auto &entry : optMap) {
+    llvm::cl::Option *opt = entry.second;
     if (opt->getOptionHiddenFlag() == llvm::cl::ReallyHidden)
-      opt->removeArgument();
+      optsToRemove.push_back(opt);
   }
+  for (llvm::cl::Option *opt : optsToRemove)
+    opt->removeArgument();
 }
 
 // This function can be called after llvm::cl::ParseCommandLineOptions
