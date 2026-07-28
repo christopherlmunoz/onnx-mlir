@@ -487,7 +487,7 @@ func.func @test_reshape_fusion3(%arg0: tensor<?x4x2x2xf32>) -> tensor<?x2x?xf32>
   onnx.Return %5 : tensor<?x2x?xf32>
 
 // CHECK-LABEL:  func.func @test_reshape_fusion3
-// CHECK-SAME:   ([[PARAM_0_:%.+]]: tensor<?x4x2x2xf32>) -> tensor<?x2x?xf32> {
+// CHECK-SAME:   ([[PARAM_0_:%.+]]: tensor<?x4x2x2xf32>) -> tensor<?x2x8xf32> {
 // CHECK-DAG:       [[VAR_0_:%.+]] = onnx.Constant dense<-1> : tensor<1xi64>
 // CHECK-DAG:       [[VAR_1_:%.+]] = onnx.Constant dense<2> : tensor<1xi64>
 // CHECK-DAG:       [[VAR_2_:%.+]] = "onnx.Dim"([[PARAM_0_]]) <{axis = 0 : si64}> : (tensor<?x4x2x2xf32>) -> tensor<1xi64>

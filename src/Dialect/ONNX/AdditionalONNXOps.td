@@ -69,11 +69,17 @@ def ONNXReturnOp : ONNX_Op<"Return",
     This operation terminates a func::FuncOp in the ONNX dialect and is replaced
     by func::ReturnOp in StandardFuncReturnPass before lowering to Krnl or other
     dialects.
+
+    A canonicalization pattern refines the enclosing function's result types
+    to match refined operand types: func::FuncOp verification checks all
+    return-like terminators against the function signature, so refined operand
+    shapes must be propagated to the signature before the end of any pass.
   }];
 
   let arguments = (ins Variadic<AnyType>:$operands);
 
   let assemblyFormat = "attr-dict ($operands^ `:` type($operands))?";
+  let hasCanonicalizer = 1;
   let hasVerifier = 1;
 }
 

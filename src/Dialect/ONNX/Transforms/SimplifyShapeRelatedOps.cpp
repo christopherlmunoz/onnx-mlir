@@ -504,6 +504,11 @@ void SimplifyShapeRelatedOpsPass::topDownShapeSimplification(
   ONNXUnsqueezeOp::getCanonicalizationPatterns(patterns, context);
   ONNXUnsqueezeV11Op::getCanonicalizationPatterns(patterns, context);
 
+  // UpdateReshapePattern and UpdateConstantOfShapePattern refine result
+  // types; when such a value flows into onnx.Return, the enclosing function's
+  // result types must be refined as well to keep the function verifiable.
+  ONNXReturnOp::getCanonicalizationPatterns(patterns, context);
+
   GreedyRewriteConfig config;
   config.setUseTopDownTraversal(true);
 

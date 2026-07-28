@@ -1225,6 +1225,10 @@ void ConstPropONNXToONNXPass::runOnOperation() {
 
   RewritePatternSet patterns(context);
   getConstPropONNXToONNXPatterns(patterns);
+  // Constant propagation can refine the types of values that flow into
+  // onnx.Return; the enclosing function's result types must be refined in the
+  // same rewrite so the function still verifies at the end of this pass.
+  ONNXReturnOp::getCanonicalizationPatterns(patterns, context);
   if (failed(applyPatternsGreedily(function, std::move(patterns))))
     signalPassFailure();
 }

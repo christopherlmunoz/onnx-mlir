@@ -204,9 +204,20 @@ static void loadMLIR(std::string inputFilename, mlir::MLIRContext &context,
       funcOp.getBody().back().getArgument(i).setType(argTy);
       newArgTypes.emplace_back(argTy);
     }
-    // Update the function type.
+    // Update the function type. A forced argument type can flow directly to
+    // a return-like terminator (e.g. an argument that is returned as-is);
+    // func::FuncOp verification requires terminator operand types to match
+    // the signature exactly, so refresh the result types from the terminator.
+    ArrayRef<Type> resultTypes = funcType.getResults();
+    SmallVector<Type, 4> newResultTypes(resultTypes.begin(), resultTypes.end());
+    Operation *terminator = funcOp.getBody().back().getTerminator();
+    if (terminator->hasTrait<OpTrait::ReturnLike>() &&
+        terminator->getNumOperands() == newResultTypes.size()) {
+      auto terminatorTypes = terminator->getOperandTypes();
+      newResultTypes.assign(terminatorTypes.begin(), terminatorTypes.end());
+    }
     FunctionType newType =
-        FunctionType::get(&context, newArgTypes, funcType.getResults());
+        FunctionType::get(&context, newArgTypes, newResultTypes);
     funcOp.setType(newType);
   }
 }

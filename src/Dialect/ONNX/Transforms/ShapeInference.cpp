@@ -144,8 +144,9 @@ void getShapeInferencePatterns(RewritePatternSet &set) {
   set.insert<YieldShapesPattern>(set.getContext(), highPriority);
 }
 
-// TODO: Consider whether to do this in a ONNXReturnOp pattern
-//       once lit tests are converted to use onnx.Return.
+// ONNXReturnOp's RefineFunctionTypeFromReturnPattern canonicalization does
+// the same synchronization whenever the terminator is onnx.Return; this
+// helper also covers functions terminated by func.return.
 void inferFunctionReturnShapes(func::FuncOp f) {
   Operation *returnOp = f.getBody().back().getTerminator();
   assert(returnOp && "function must return");
