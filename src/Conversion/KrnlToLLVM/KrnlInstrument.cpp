@@ -64,11 +64,11 @@ static LLVM::DICompileUnitAttr getOrCreateInstrumentCU(ModuleOp module) {
   auto fileAttr = LLVM::DIFileAttr::get(
       ctx, /*name=*/"onnx-mlir-instrument.mlir", /*directory=*/"/");
   auto producerAttr = StringAttr::get(ctx, "onnx-mlir");
-  auto cu = LLVM::DICompileUnitAttr::get(ctx,
+  auto cu = LLVM::DICompileUnitAttr::get(
       DistinctAttr::create(UnitAttr::get(ctx)),
       /*sourceLanguage=*/llvm::dwarf::DW_LANG_C99, fileAttr, producerAttr,
       /*isOptimized=*/true, LLVM::DIEmissionKind::Full,
-      LLVM::DINameTableKind::Default,
+      /*isDebugInfoForProfiling=*/false, LLVM::DINameTableKind::Default,
       /*splitDebugFilename=*/StringAttr{});
   module->setAttr(kInstrumentCUAttrName, cu);
   return cu;
