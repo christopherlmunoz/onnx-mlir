@@ -13,7 +13,15 @@ from lit.llvm.subst import ToolSubst
 # name: The name of this test suite.
 config.name = "Open Neural Network Frontend"
 
-config.test_format = lit.formats.ShTest(not llvm_config.use_lit_shell)
+# Prefer the lit internal shell, matching upstream MLIR's lit.cfg.py: it gives
+# better failure output, and LLVM-23 deprecated execute_external=True (raises
+# unless force_execute_external is set). LIT_USE_INTERNAL_SHELL=0 opts out.
+use_lit_shell = True
+lit_shell_env = os.environ.get("LIT_USE_INTERNAL_SHELL")
+if lit_shell_env:
+    use_lit_shell = lit.util.pythonize_bool(lit_shell_env)
+
+config.test_format = lit.formats.ShTest(execute_external=not use_lit_shell)
 
 # suffixes: A list of file extensions to treat as test files.
 config.suffixes = [".mlir", ".json", ".onnxtext"]
